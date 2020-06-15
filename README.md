@@ -1,5 +1,3 @@
-<a href="http://fvcproductions.com"><img src="https://avatars1.githubusercontent.com/u/4284691?v=3&s=200" title="FVCproductions" alt="FVCproductions"></a>
-
 # PriceTrack Backend ( _in progress!!_)
 
 > Blazingly capable of scraping multiple e-commerce stores including SPAs (such as Ali-Express or Amazon)
