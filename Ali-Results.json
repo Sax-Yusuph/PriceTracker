@@ -1,0 +1,55 @@
+{
+  "imageWidth": 220,
+  "originalPrice": "US $222.95 - 291",
+  "productId": 32868752897,
+  "saleMode": "single-piece_sale",
+  "discount": 43,
+  "store": {
+     "storeUrl": "//www.aliexpress.com/store/628270",
+     "aliMemberId": 204959455,
+     "storeName": "99100 Store",
+     "storeId": 628270
+  },
+  "title": "Apple iPhone 6S 16GB 2GB GSM/WCDMA/LTE Nfc Dual Core Fingerprint Recognition Used 2GB-RAM",
+  "tradeDesc": "42 Sold",
+  "saleUnit": "piece",
+  "imageHeight": 220,
+  "logisticsDesc": "Free Shipping",
+  "tags": {
+     "big_sale_tag": {
+        "tagImgWidth": 43,
+        "tagImgHeight": 14,
+        "tagImgUrl": "http://ae01.alicdn.com/kf/H747494c10fdb4a9c9ab9665fc06b1ebeY.png"
+     }
+  },
+  "productDetailUrl": "//www.aliexpress.com/item/32868752897.html?algo_pvid=0f83fbb0-e40a-4b96-8ab9-425fece19d87&algo_expid=0f83fbb0-e40a-4b96-8ab9-425fece19d87-0&btsid=0ab6d67915922333210061833e0b42&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_",
+  "traceInfo": {
+     "displayCategoryId": "5090301",
+     "algo_pvid": "0f83fbb0-e40a-4b96-8ab9-425fece19d87",
+     "postCategoryId": "5090301",
+     "ownerMemberId": "cn1500485671",
+     "algo_expid": "0f83fbb0-e40a-4b96-8ab9-425fece19d87-0"
+  },
+  "price": "US $127.08 - 165.87",
+  "imageUrl": "//ae01.alicdn.com/kf/HTB1bFQEXAL0gK0jSZFtq6xQCXXaa/Used-Original-Unlocked-Apple-iPhone-6S-4-7inch-2GB-RAM-16GB-64GB-128GB-12-0MP-WCDMA.jpg_220x220xz.jpg",
+  "sellingPoints": [
+     {
+        "sellingPointType": "info_sell_point",
+        "tagText": "Used",
+        "sellingPointTagId": "100000064"
+     }
+  ],
+  "starRating": "4.6",
+  "productType": "ordinary_product",
+  "featureSellingPoints": [],
+  "infoSellingPoints": [
+     {
+        "sellingPointType": "info_sell_point",
+        "tagText": "Used",
+        "sellingPointTagId": "100000064"
+     }
+  ],
+  "shrink": {
+     "sellingPoints": true
+  }
+}
