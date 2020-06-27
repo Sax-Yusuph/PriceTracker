@@ -25,6 +25,7 @@ const scrapJumia = (html) => {
     const productImage = $(this).find(".img-c > img").attr("data-src");
 
     jumiaProducts.push({
+      websiteName: "jumia",
       productName,
       productLink: `https://www.jumia.com.ng/${productLink}`,
       productImage,
@@ -70,6 +71,7 @@ const scrapKonga = (html) => {
       .attr("data-srcset");
 
     kongaProducts.push({
+      websiteName: "konga",
       productName,
       productLink: `https://www.konga.com${productLink}`,
       productImage,
@@ -106,6 +108,7 @@ const scrapSlot = (html) => {
       .attr("src");
 
     slotProducts.push({
+      websiteName: "slot",
       productName,
       productLink,
       productImage,
@@ -115,6 +118,39 @@ const scrapSlot = (html) => {
 
   // console.log(slotProducts)
   return slotProducts;
+};
+
+
+/*****************************
+ FEMTECH IT  ************** not done yet !!!!!!!!
+ **********************************************/
+const scrapFemtech = (html) => {
+  const $ = cheerio.load(html);
+  const products = $(".product-inner");
+  const femtechProducts = [];
+
+  products.each(function () {
+    const productName = $(this).find(".mf-product-content > h2").text();
+    const productLink = $(this).find(".mf-product-thumbnail > a ").attr("href");
+
+    const newPrice = $(this)
+      .find(".mf-product-price-box> .price > .woocommerce-Price-amount.amount")
+      .text();
+    const productImage = $(this)
+      .find(".mf-product-thumbnail > a > img")
+      .attr("src");
+
+    femtechProducts.push({
+      websiteName: "femtech",
+      productName,
+      productLink,
+      productImage,
+      newPrice,
+    });
+  });
+
+  // console.log(slotProducts)
+  return femtechProducts;
 };
 
 /*****************************
@@ -133,6 +169,7 @@ const scrapKara = (html) => {
     const productImage = $(this).find("img.product-image-photo ").attr("src");
 
     karaProducts.push({
+      websiteName: "kara",
       productName,
       productLink,
       productImage,
@@ -171,6 +208,7 @@ const scrapEbay = (html) => {
       .attr("src");
 
     EbayProducts.push({
+      websiteName: "ebay",
       productName,
       productLink,
       productImage,
@@ -185,52 +223,10 @@ const scrapEbay = (html) => {
   return EbayProducts;
 };
 
-/*****************************
- AlI EXPRESS STORE
- **********************************************/
-const scrapAli = (html) => {
-  const $ = cheerio.load(html, { xmlMode: true });
-  const str = $("script")[17].children[0].data
-  const result = str.match(/window.runParams = (\{.*?\})/)
-
-//   console.log(result)
-  return result;
-  // const products = $('.list-item > .gallery.product-card')
-  // // fs.writeFile('ali-express.html', $.html() , ()=>{
-  // //     console.log('saved Ali express webpage sir!')
-  // // })
-  // const aliProducts = []
-
-  // products.each(function(){
-  //     const productName = $(this).find('.item-title-wrap > a').text();
-  //     const productLink= $(this).find('.item-title-wrap > a ').attr('href');
-
-  //     // DO THIS LATER
-  //     const newPrice = $(this).find('.item-price-wrap .price-current').text();
-
-  //     const info = $(this).find('.item-shipping-wrap .shipping-value').text();
-  //     const infoAlt = $(this).find('.sale-value > a ').text();
-  //     const productImage = $(this).find('img.item-img').attr('src')
-
-  //     aliProducts.push({
-  //         productName,
-  //         productLink,
-  //         productImage,
-  //         productAvailability : info,
-  //         pickUp: infoAlt,
-  //         newPrice,
-  //     })
-  // })
-
-  // // console.log(aliProducts)
-  // return aliProducts
-};
-
 module.exports = {
   scrapJumia,
   scrapKonga,
   scrapEbay,
   scrapSlot,
-  scrapKara,
-  scrapAli,
+  scrapKara
 };

@@ -1,7 +1,6 @@
 const fs = require("fs");
 const puppeteer = require("puppeteer");
-const cheerio = require("cheerio");
-const { scrapAli } = require("../scrapStore");
+const { performance } = require('perf_hooks')
 
 const userRequest = {
   item: "iphone 6s",
@@ -48,37 +47,33 @@ const skippedResources = [
   "clicksor",
   "tiqcdn",
   "b9zcrrrvom",
-  "/cdnjs.cloudflare.com/ajax/libs/lazysizes/",
+  "cloudflare",
   "cdn-cgi",
-  "/ajax.cloudflare.com",
-  "/chunks/styles",
-  "/chunks/vendor",
+  "chunks",
   "commons",
   "webpack",
   "runtime",
-  "/_next/static/",
-  // jumia
+  "_next/static/",
   "tmall",
   "retcode",
   "mpulse.net",
   "alilog",
-  "assets.alicdn.com/g/ae-fe/g-loader/index.js",
-  "us.cobra.aliexpress.com/p4pforlist.html",
-  "ttps://login.aliexpress.ru/setCommonCookie.htm",
-  "https://is.alicdn.com/js/6v/biz/common/store-proxy/store-proxy2.html",
-  "https://i.alicdn.com/g/sc-assets/flasher-config/prefetch/5abx3t8moki/a3jyjrsiwd6.js",
-  "https://s.alicdn.com/@g/flasher-manifest/aliexpress/manifest.json",
-  "https://lighthouse.aliexpress.com/buyer/StoreNewArrivalsProductNumAjax.htm",
-  "https://acs.aliexpress.com/h5/mtop.aliexpress.lighthouse.config.get/1.0/",
-  "https://lighthouse.aliexpress.com/shopcart/buyer_pay_low_notice_ajax.htm",
-  "https://message.aliexpress.com/message/messageUnreadCountAjaxService.htm",
+  "cobra",
+  "setCommonCookie",
+  "lighthouse",
+  "lighthouse.config",
+  "messageUnreadCountAjaxService",
   "header-ui",
   "vendors.js",
-  // "home.js",
+  "home.js",
+  "alicdn",
   "standalone",
 ];
 
 const scrapSite = async (userRequest) => {
+  
+ const t0 = performance.now()
+ console.log(`starting in ${Math.ceil(t0 / 1000)} seconds`)
 
   const browser = await puppeteer.launch({
     args: [
@@ -91,6 +86,7 @@ const scrapSite = async (userRequest) => {
       "--window-size=1920x1080",
     ],
   });
+  console.log(`lauched puppeteer in ${Math.ceil((performance.now() - t0) / 1000)} seconds`)
   const page = await browser.newPage();
   await page.setRequestInterception(true);
   // await page.setUserAgent(userAgent);
@@ -111,7 +107,9 @@ const scrapSite = async (userRequest) => {
 
   let queryString = userRequest.item.replace(/\s/g, "+");
   let url = `https://www.aliexpress.com/wholesale?SearchText=${queryString}`;
-  console.log(url);
+
+  console.log(`navigating Ali Express Website in ${Math.ceil((performance.now() - t0) / 1000)} seconds`)
+
   try {
     // NAVIGATE TO THE PAGE VIA PUPPETEEER
     await page.goto(url, { waitUntil: "networkidle2", timeout: 0 });
@@ -130,8 +128,9 @@ const scrapSite = async (userRequest) => {
       });
       return ScrapedData
     });
-
+    
     console.log(`${data.length} results`);
+    console.log(`finished in ${Math.ceil((performance.now() - t0) / 1000)} seconds`)
     console.log(`.....................................................................\n........................................................`);
     // console.log(data);
 

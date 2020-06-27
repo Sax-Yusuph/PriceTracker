@@ -1,7 +1,8 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const axios = require("axios");
-const { performance } = require('perf_hooks');
+const { performance } = require("perf_hooks");
+const { skippedResources, blockedResourceTypes } = require('./utils/resource')
 // const cheerio = require('cheerio')
 const {
   scrapJumia,
@@ -17,57 +18,7 @@ const userRequest = {
   urls: ["Konga", "Jumia", "AliExpress", "Kara", "Ebay", "Slot"],
 };
 
-const blockedResourceTypes = [
-  "image",
-  "media",
-  "stylesheet",
-  "font",
-  "texttrack",
-  "object",
-  "beacon",
-  "csp_report",
-  "imageset",
-];
 
-const skippedResources = [
-  "quantserve",
-  "adzerk",
-  "doubleclick",
-  "adition",
-  "exelator",
-  "sharethrough",
-  "fullstory",
-  "cdn.api.twitter",
-  "analytics.twitter.com",
-  "static.ads-twitter.com",
-  "google-analytics",
-  "googletagmanager",
-  "google",
-  "fontawesome",
-  "facebook",
-  "analytics",
-  "optimizely",
-  "clicktale",
-  "mixpanel",
-  "zedo",
-  "clicksor",
-  "tiqcdn",
-  "b9zcrrrvom",
-  "/cdnjs.cloudflare.com/ajax/libs/lazysizes/",
-  "cdn-cgi",
-  "/ajax.cloudflare.com",
-  "/chunks/styles",
-  "/chunks/vendor",
-  "commons",
-  "webpack",
-  "runtime",
-  "/_next/static/",
-  // jumia
-  "bam.nr-data.net",
-  "assets_he",
-  "fragment",
-  "js-agent",
-];
 
 let queryString = userRequest.item.replace(/\s/g, "+");
 const urls = userRequest.urls
@@ -91,9 +42,12 @@ const urls = userRequest.urls
 
     return storeUrl;
   });
-  
-  SPAStoreUrls = userRequest.urls
-  .filter((url) => url !== "Jumia" && url !==  "Kara" && url !== "Ebay" && url !==  "Slot")
+
+const SPA_Store_Urls = userRequest.urls
+  .filter(
+    (url) =>
+      url !== "Jumia" && url !== "Kara" && url !== "Ebay" && url !== "Slot"
+  )
   .map((url) => {
     let SPAStoreUrl = "";
     switch (url) {
@@ -105,48 +59,41 @@ const urls = userRequest.urls
         queryString = userRequest.item.replace(/\s/g, "%20");
         SPAStoreUrl = `https://www.konga.com/search?search=${queryString}`;
         break;
-      }
-      return SPAStoreUrl;
-    });
-    
-
-
-
-
-
+    }
+    return SPAStoreUrl;
+  });
 
 function fetchData(URL) {
   return axios
     .get(URL)
     .then(function (response) {
-      let data = {};
-
-      switch (URL.split(".")[1]) {
+      let uri = URL.split(".")[1].includes("ng/?s=")
+        ? "slot"
+        : URL.split(".")[1];
+      switch (uri) {
         case "jumia":
-          data = { jumia: scrapJumia(response.data) };
-          break;
+          return scrapJumia(response.data);
         case "ebay":
-          data = { ebay: scrapEbay(response.data) };
-          break;
+          return scrapEbay(response.data);
         case "slot":
-          data = { slot: scrapSlot(response.data) };
-          break;
+          return scrapSlot(response.data);
         case "kara":
-          data = { kara: scrapKara(response.data) };
-          break;
+          return scrapKara(response.data);
       }
-
-      return data;
     })
     .catch(function (error) {
-      return { success: false };
+      return error.message;
     });
 }
 
-getSPAStores = async (SPAStoreUrls) => {
-  console.log(`SPAStoreUrls : ${SPAStoreUrls}`)
-  const t0 = performance.now()
-  console.log(`${t0 / 1000} milliseconds`)
+
+
+getSPAStores = async (SPA_Store_Urls) => {
+  console.log(`SPA_Store_Urls : ${SPA_Store_Urls}`);
+  const t0 = performance.now();
+  console.log(
+    `started SPA store in ${Math.ceil((performance.now() - t0) / 1000)} seconds`
+  );
   const browser = await puppeteer.launch({
     args: [
       // "--proxy-server=" + proxy,
@@ -158,65 +105,113 @@ getSPAStores = async (SPAStoreUrls) => {
       "--window-size=1920x1080",
     ],
   });
-  const page = await browser.newPage();
-  await page.setRequestInterception(true);
-  // await page.setUserAgent(userAgent);
 
-  // PAGE SETTINGS ***************************************
-  page.on("request", (request) => {
-    const requestUrl = request._url.split("?")[0].split("#")[0];
-    if (
-      blockedResourceTypes.indexOf(request.resourceType()) !== -1 ||
-      skippedResources.some((resource) => requestUrl.indexOf(resource) !== -1)
-    ) {
-      request.abort();
-    } else {
-      console.log(requestUrl)
-      request.continue();
-    }
+  console.log(
+    `launched puppeteer in ${Math.ceil(
+      (performance.now() - t0) / 1000
+    )} seconds`
+  );
+  let results = await Promise.all(
+    SPA_Store_Urls.map(async (url) => {
+      const page = await browser.newPage();
+      await page.setRequestInterception(true);
+      // await page.setUserAgent(userAgent);
+
+      // PAGE SETTINGS ***************************************
+
+      page.on("request", (request) => {
+        const requestUrl = request._url.split("?")[0].split("#")[0];
+        if (
+          blockedResourceTypes.indexOf(request.resourceType()) !== -1 ||
+          skippedResources.some(
+            (resource) => requestUrl.indexOf(resource) !== -1
+          )
+        ) {
+          request.abort();
+          // console.log(`blocked ----- ${requestUrl}`)
+        } else {
+          console.log(requestUrl);
+          request.continue();
+        }
+      });
+      console.log(
+        `navigating urls in ${Math.ceil(
+          (performance.now() - t0) / 1000
+        )} seconds`
+      );
+
+      try {
+        // NAVIGATE TO THE PAGE VIA PUPPETEEER
+        await page.goto(url, { waitUntil: "networkidle2", timeout: 0 });
+        let html = await page.content();
+
+        fs.writeFileSync(`${url.split(".")[1]}.html`, html);
+
+        console.log(url.split(".")[1]);
+
+        switch (url.split(".")[1]) {
+          case "konga":
+            console.log(`captured konga url: ${url}`);
+            return { konga: scrapKonga(html) };
+          case "aliexpress":
+            return await page.evaluate(() => {
+              const products = window.runParams.items;
+              const ScrapedData = products.map((product) => {
+                return {
+                  websiteName: "ali express",
+                  productName: product.title,
+                  productLink: `https:${
+                    product.productDetailUrl.split("?")[0]
+                  }`,
+
+                  newPrice: product.price,
+                  pickUp: product.logisticsDesc,
+                  productAvailability: product.tradeDesc,
+                  productImage: `https:${product.imageUrl}`,
+                };
+              });
+              return ScrapedData;
+            });
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    })
+  ).then((res) => {
+    return res;
   });
 
-  for (let url of SPAStoreUrls) {
-    console.log(url.split(".")[1]);
-
-    if (url.split(".")[1] === "aliexpress") return;
-
-    try {
-      // NAVIGATE TO THE PAGE VIA PUPPETEEER
-      await page.goto(url, { waitUntil: "networkidle2", timeout: 0 });
-      let html = await page.content();
-      let data = {};
-      console.log(`${(performance.now() - t0)/1000} milliseconds`)
-
-      switch (url.split(".")[1]) {
-        case "konga":
-          data = { konga: scrapKonga(html) };
-          break;
-      }
-      // console.log(data);
-      console.log(`${(performance.now() - t0) / 1000} milliseconds`)
-      return data;
-    } catch (error) {
-      console.log(error.message);
-    }
-  }
-
   await browser.close();
+
+  console.log(
+    `finished in ${Math.ceil((performance.now() - t0) / 1000)} seconds`
+  );
+  return results;
 };
 
-
-
 function getAllData(URLs, SPAUrls) {
-  return Promise.all([...URLs.map(fetchData),getSPAStores(SPAUrls)]);
+  return Promise.all([...URLs.map(fetchData), getSPAStores(SPAUrls)]);
 }
 
-
 // EXECUTE CODE FUNCTION HERE!!!*************************************************
-getAllData(urls, SPAStoreUrls)
+getAllData(urls, SPA_Store_Urls)
   .then((resp) => {
-    fs.writeFile("storeResults.json", JSON.stringify(resp), () => {
-      console.log("yay! successfully completed")
+    const fetched_result = [];
+    resp.forEach((array) => {
+      fetched_result.push(...array);
     });
+    last_item = fetched_result.pop()
+
+    fetched_result.push(...last_item)
+
+    fs.writeFile(
+      "storeResults.json",
+      JSON.stringify(fetched_result, null, 3),
+      () => {
+        console.log(`scraped ${fetched_result.length} results >>>>>>>>`);
+        console.log("yay! successfully completed");
+      }
+    );
     // console.log(JSON.stringify(resp, null, 2));
   })
   .catch((e) => {
