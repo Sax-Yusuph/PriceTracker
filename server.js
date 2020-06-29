@@ -4,25 +4,40 @@ const format_res = require("./utils/format_res");
 const get_SPA = require("./utils/get_SPA");
 const fetchData = require("./utils/get_store");
 const fs = require("fs");
+const { performance } = require("perf_hooks");
+const bodyParser = require("body-parser");
 
 const app = express();
 
-(async () => {
-  const browser = await puppeteer.launch({
-    args: [
-      // "--proxy-server=" + proxy,
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-accelerated-2d-canvas",
-      "--disable-gpu",
-      "--window-size=1920x1080",
-    ],
-  });
+let browser;
 
-  app.post("/getstore", (req, res) => {
-    const formattedURLs = format_res(req.body);
+app.use(bodyParser.json())
 
+app.get("/", (req, res) => {
+  if (browser) return;
+  puppeteer
+    .launch({
+      args: [
+        // "--proxy-server=" + proxy,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+        "--window-size=1920x1080",
+      ],
+    })
+    .then((chromium) => {
+      browser = chromium;
+      res.send("Chromium Instance Launched");
+    });
+});
+
+app.post("/getstore", (req, res) => {
+  const formattedURLs = format_res(req.body);
+  // res.send(formattedURLs)
+  const t0= performance.now() 
+  if (browser) {
     Promise.all([
       ...formattedURLs.urls.map(fetchData),
       ...formattedURLs.SPA_Store_Urls.map(async (uri) => {
@@ -30,19 +45,25 @@ const app = express();
       }),
     ])
       .then((results) => {
-        res.send(JSON.stringify(results, null, 3));
+        const formatted_results = []
+        results.forEach(result => formatted_results.push(...result))
+
+        res.send(JSON.stringify(formatted_results, null, 3));
         fs.writeFile(
           "serverResults.json",
-          JSON.stringify(results, null, 3),
+          JSON.stringify(formatted_results, null, 3),
           () => {
-            console.log(`scraped ${results} results >>>>>>>>`);
+            console.log(`scraped ${formatted_results.length} results >>>>>>>>`);
             console.log("yay! successfully completed");
+            console.log(`finished in : ${Math.ceil((performance.now()  - t0)/1000)} seconds`)
           }
         );
       })
       .catch((e) => console.log(e.message));
-  });
-})();
+  }else{
+    res.status(400).send("Opps! Chromium not launched yet")
+  }
+});
 
 const PORT = 4000;
 
@@ -51,7 +72,7 @@ app.listen(process.env.PORT || PORT, () => {
 });
 
 /** TODOS
- * 
+ *
  * EXPLORE BROWSER.CONNECT OPTIONS. (i am doubting the automatic ASYNC() function)
  * CLOSER EITHER browser.page or browser.disconnect IN get_spa FUNCTION or server.js FILE.
-**/
+ **/

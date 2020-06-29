@@ -4,7 +4,7 @@
 // };
 
 const format_res = (userRequest) => {
-
+  // const userRequest = JSON.parse(userReq)
   const urls = userRequest.urls
     .filter((url) => url !== "Konga" && url !== "AliExpress")
     .map((url) => {

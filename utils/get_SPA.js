@@ -20,15 +20,15 @@ const get_SPA = async (uri, browser) =>{
           request.continue();
         }
       });
-
+      
       try {
         // NAVIGATE TO THE PAGE VIA PUPPETEEER
         await page.goto(uri, { waitUntil: "networkidle2", timeout: 0 });
         let html = await page.content();
-
+        
         switch (uri.split(".")[1]) {
           case "konga":
-            return { konga: scrapKonga(html) };
+            return scrapKonga(html);
           case "aliexpress":
             return await page.evaluate(() => {
               const products = window.runParams.items;
@@ -48,7 +48,9 @@ const get_SPA = async (uri, browser) =>{
               });
               return ScrapedData;
             });
-        }
+          }
+          await page.goto('about:blank')
+          await page.close()
       } catch (error) {
         console.log(error.message);
       }
