@@ -1,4 +1,4 @@
-# PriceTrack Backend ( _in progress!!_)
+# PriceTrack Backend
 
 > Blazingly capable of scraping multiple e-commerce stores including SPAs (such as Ali-Express or Amazon)
 
